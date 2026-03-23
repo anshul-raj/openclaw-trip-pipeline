@@ -108,7 +108,7 @@ python scripts/idempotency_key.py "https://example.com/canonical-url"
 ### OpenClaw Handling Guidance (gog)
 
 - Trip creation must create one sheet per trip.
-- Store sheet metadata in `trips/<trip_name>/details.md`:
+- Store sheet metadata in `/openclaw-trip-pipeline/trip/<tripname>/details.md`:
   - `sheet_id`
   - `sheet_tab`
   - `sheet_url`

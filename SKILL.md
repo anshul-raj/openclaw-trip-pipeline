@@ -30,7 +30,7 @@ Before processing any link, the skill must do one of the following:
 
 Trip files live under:
 
-- `trips/<trip_id>/details.md`
+- `/openclaw-trip-pipeline/trip/<tripname>/details.md`
 
 Each trip can map to a different Google Sheet (via `gog`), category preferences, and defaults.
 
@@ -47,13 +47,13 @@ Mandatory input to collect:
 Trip creation actions (must run in this order):
 
 1. Create trip folder and details file path:
-  - `trips/<trip_name>/details.md`
+  - `/openclaw-trip-pipeline/trip/<tripname>/details.md`
 2. Create a Google Sheet using OpenClaw `gog`.
 3. Add required headers in first row:
   - `Timestamp`, `Link`, `CanonicalLink`, `Source`, `Type`, `Subtype`, `Place`, `ExpenseTier`, `Priority`, `Notes`, `Status`, `Confidence`
 4. Get the created Google Sheet link.
 5. Share that Google Sheet link with the user.
-6. Write all creation outputs into `trips/<trip_name>/details.md`.
+6. Write all creation outputs into `/openclaw-trip-pipeline/trip/<tripname>/details.md`.
 
 Optional input (only if user provides):
 
@@ -68,7 +68,7 @@ Optional input (only if user provides):
 
 After collecting input:
 
-1. Create `trips/<trip_name>/details.md`.
+1. Create `/openclaw-trip-pipeline/trip/<tripname>/details.md`.
 2. Write trip metadata in the template format.
 3. Set this trip as active context for subsequent ingestion.
 
@@ -120,7 +120,7 @@ If one source (for example one Instagram reel) yields multiple parsed line items
 - Keep item-specific values (`Type`, `Subtype`, `Place`, `ExpenseTier`, `Priority`, `Notes`, `Confidence`) per row.
 - `Link` and `CanonicalLink` may repeat across rows when they come from the same source.
 
-## Trip Metadata Template (`trips/<trip_name>/details.md`)
+## Trip Metadata Template (`/openclaw-trip-pipeline/trip/<tripname>/details.md`)
 
 Use this format:
 
@@ -128,7 +128,7 @@ Use this format:
 # Trip Details
 
 - trip_name: trip1
-- trip_path: trips/trip1/details.md
+- trip_path: /openclaw-trip-pipeline/trip/trip1/details.md
 - sheet_provider: gog
 - sheet_name: trip1-links
 - sheet_id: your-google-sheet-id
