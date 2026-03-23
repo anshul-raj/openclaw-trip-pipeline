@@ -12,7 +12,7 @@ Build a reliable ingestion pipeline:
 
 `Telegram message -> URL extraction -> source-aware fetch -> LLM summary/classification -> Google Sheet write`
 
-Goal: any shared link becomes a searchable, structured travel row.
+Goal: any shared link becomes searchable, structured travel row(s).
 
 Tool registry for execution details:
 
@@ -101,17 +101,24 @@ Always write these fields:
 
 1. Ensure active trip exists; otherwise run trip creation flow first.
 2. Receive Telegram message.
-3. Extract first valid URL.
+3. Extract all valid URLs from the message (preserve order).
 4. Canonicalize URL (remove tracking params, normalize host).
 5. Compute idempotency key by running `python scripts/idempotency_key.py "<canonical_url>"`.
 6. Check if record already exists:
-  - If exists, skip duplicate write (or update existing row).
+  - Dedupe by `(canonical_url, normalized_item_signature)`.
+  - If an identical item already exists, skip duplicate write (or update existing row).
   - If new, write queued row immediately.
 7. Fetch content/metadata by source.
-8. Run LLM summarization/classification into strict JSON.
+8. Run LLM summarization/classification into a strict JSON list (array of item objects).
 9. Validate JSON against schema/enums.
-10. Update row with structured fields and set `Status=processed`.
+10. Update each queued row with structured fields and set `Status=processed`.
 11. If any step fails, write failure reason and `Status=failed`.
+
+If one source (for example one Instagram reel) yields multiple parsed line items:
+
+- Write one row per line item in CSV/Sheet output.
+- Keep item-specific values (`Type`, `Subtype`, `Place`, `ExpenseTier`, `Priority`, `Notes`, `Confidence`) per row.
+- `Link` and `CanonicalLink` may repeat across rows when they come from the same source.
 
 ## Trip Metadata Template (`trips/<trip_name>/details.md`)
 
@@ -215,7 +222,7 @@ Never drop data silently; failed processing should still be traceable in sheet.
 
 ## Reliability Rules (Mandatory)
 
-- **Idempotency**: dedupe by canonical URL hash.
+- **Idempotency**: dedupe by `(canonical_url, normalized_item_signature)`.
 - **Two-stage write**:
   1. quick `queued` write
   2. async enrichment update
@@ -288,8 +295,9 @@ Start simple and expand:
 
 The system is complete when:
 
-- Any travel link sent in Telegram creates exactly one sheet record.
-- Record is summarized and categorized with consistent enums.
-- Duplicates are prevented.
+- Any travel link sent in Telegram creates one or more records based on parsed line items.
+- If a source contains multiple line items, each line item gets its own row with item-level details.
+- Records are summarized and categorized with consistent enums.
+- Duplicate items are prevented (same canonical link + same normalized item signature).
 - Failures are visible and retryable.
 
