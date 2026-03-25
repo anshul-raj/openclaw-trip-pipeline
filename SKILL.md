@@ -181,7 +181,7 @@ Recommended handlers:
 - `youtube`: `yt-dlp` for title/channel/duration/description
 - `website`: `requests + beautifulsoup4` (or article extraction)
 - `maps`: parse place metadata available in URL/title
-- `instagram/tiktok`: best-effort metadata; fall back gracefully
+- `instagram/tiktok`: best-effort metadata; fall back gracefully (for Instagram, metadata may include `alts`, `og` Open Graph fields, and `keywords`)
 
 Important:
 
@@ -195,7 +195,8 @@ Prompt the model to return JSON only:
 ```text
 Extract travel planning info from this content.
 
-Return STRICT JSON with keys:
+Return STRICT JSON as an array of item objects.
+Each item object must have keys:
 type, subtype, place, expense_tier, priority, notes, confidence
 
 Allowed values:
@@ -204,6 +205,8 @@ Allowed values:
 - priority: must|maybe|later
 - confidence: float between 0 and 1
 ```
+
+The input content you receive may also contain source-specific metadata fields (for example Instagram `og` and `keywords`). You may use them as hints, but the output JSON must follow the item schema above.
 
 If fields are unknown:
 
@@ -300,4 +303,3 @@ The system is complete when:
 - Records are summarized and categorized with consistent enums.
 - Duplicate items are prevented (same canonical link + same normalized item signature).
 - Failures are visible and retryable.
-
