@@ -1,3 +1,4 @@
+```
 from __future__ import annotations
 
 import argparse
@@ -76,6 +77,40 @@ def extract_image_alts(html: str) -> list[str]:
     return alts
 
 
+def extract_og_meta(html: str) -> dict[str, str]:
+    """Extract content from Open Graph meta tags (property names starting with og:)."""
+    soup = BeautifulSoup(html, "lxml")
+    og: dict[str, str] = {}
+    for meta in soup.find_all("meta", attrs={"property": True}):
+        prop = (meta.get("property") or "").strip()
+        if not prop.startswith("og:"):
+            continue
+        raw = meta.get("content")
+        if raw is None:
+            continue
+        content = raw.strip()
+        if content:
+            og[prop] = content
+    return og
+
+
+def extract_meta_keywords(html: str) -> list[str]:
+    """Extract content from meta tags with name="keywords" (case-insensitive name)."""
+    soup = BeautifulSoup(html, "lxml")
+    out: list[str] = []
+    for meta in soup.find_all("meta", attrs={"name": True}):
+        name = (meta.get("name") or "").strip().lower()
+        if name != "keywords":
+            continue
+        raw = meta.get("content")
+        if raw is None:
+            continue
+        content = raw.strip()
+        if content:
+            out.append(content)
+    return out
+
+
 def write_source_to_temp_file(html: str) -> str:
     """Write raw HTML to a temporary file and return path."""
     with tempfile.NamedTemporaryFile(
@@ -98,6 +133,8 @@ def run_instagram_fetch(
     """Fetch Instagram page and return agent-friendly structured output."""
     html = get_instagram_view_source(url, timeout=timeout, cookie_header=cookie_header)
     alts = extract_image_alts(html)
+    og = extract_og_meta(html)
+    keywords = extract_meta_keywords(html)
     source_file = write_source_to_temp_file(html) if save_source else None
     return {
         "ok": True,
@@ -107,6 +144,10 @@ def run_instagram_fetch(
         "html_length": len(html),
         "alt_count": len(alts),
         "alts": alts,
+        "og_count": len(og),
+        "og": og,
+        "keywords_count": len(keywords),
+        "keywords": keywords,
         "source_file": source_file,
     }
 
@@ -168,3 +209,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+```
